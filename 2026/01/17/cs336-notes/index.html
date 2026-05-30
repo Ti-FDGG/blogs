@@ -1,0 +1,631 @@
+  <!DOCTYPE html>
+  <html lang="zh-CN"  
+      data-theme-mode="auto"
+  >
+  <head>
+  <meta charset="utf-8">
+  
+  
+  
+  <script>window.REIMU_CONFIG = {};window.REIMU_CONFIG.icon_font = '4552607_4k4bc36ef96';window.REIMU_CONFIG.clipboard_tips = {"success":{"zh-CN":"复制成功 (*^▽^*)"},"fail":{"zh-CN":"复制失败 (ﾟ⊿ﾟ)ﾂ"},"copyright":{"enable":false,"count":50,"license_type":"by-nc-sa"}};window.REIMU_CONFIG.clipboard_tips.copyright.content = '本博客所有文章除特别声明外，均采用 BY-NC-SA 许可协议。转载请注明出处！';window.REIMU_CONFIG.code_block = {"expand":true};window.REIMU_CONFIG.base = 'https://ti-fdgg.github.io/blogs';</script>
+  <title>
+    CS336 学习笔记 | Timothy&#39;s Blog
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Mulish:400,400italic,700,700italic|Noto Serif SC:400,400italic,700,700italic&display=swap"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mulish:400,400italic,700,700italic|Noto Serif SC:400,400italic,700,700italic&display=swap" media="print" onload="this.media='all'">
+    <link rel="preload" href="//at.alicdn.com/t/c/font_4552607_4k4bc36ef96.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    
+<link rel="stylesheet" href="/blogs/css/loader.css">
+
+    <meta name="description" content="Lecture 1: Overview &amp; Tokenization 核心主题：语言建模定义、分词粒度的权衡、BPE 算法详解。  1. 语言模型 (Language Modeling)  定义：语言模型是对词序列 x1:Lx_{1:L}x1:L​ 的联合概率分布 p(x)p(x)p(x) 进行建模。 范式：通常通过Next Token Prediction（预测下一个词）来实现，即 p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CS336 学习笔记">
+<meta property="og:url" content="https://ti-fdgg.github.io/blogs/2026/01/17/cs336-notes/index.html">
+<meta property="og:site_name" content="Timothy&#39;s Blog">
+<meta property="og:description" content="Lecture 1: Overview &amp; Tokenization 核心主题：语言建模定义、分词粒度的权衡、BPE 算法详解。  1. 语言模型 (Language Modeling)  定义：语言模型是对词序列 x1:Lx_{1:L}x1:L​ 的联合概率分布 p(x)p(x)p(x) 进行建模。 范式：通常通过Next Token Prediction（预测下一个词）来实现，即 p">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-01-17T04:55:15.000Z">
+<meta property="article:modified_time" content="2026-01-21T04:58:35.215Z">
+<meta property="article:author" content="Mothy Ti">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="Transformer">
+<meta name="twitter:card" content="summary">
+    <link rel="alternate" href="/blogs/atom.xml" title="Timothy's Blog" type="application/atom+xml">
+    <link rel="shortcut icon" href="/blogs/images/favicon/new_fav.ico">
+  
+<link rel="stylesheet" href="/blogs/css/style.css">
+
+  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe.css" integrity="sha384-IfxC36XL/toUyJ939C73PcgMuRzAZuIzZxE38drsmO5p6jD7ei+Zx/1oA/0l8ysE" crossorigin="anonymous">
+    
+<script src="https://npm.webcache.cn/pace-js@1.2.4/pace.min.js" integrity="sha384-k6YtvFUEIuEFBdrLKJ3YAUbBki333tj1CSUisai5Cswsg9wcLNaPzsTHDswp4Az8" crossorigin="anonymous"></script>
+
+    
+<link rel="stylesheet" href="https://npm.webcache.cn/@reimujs/aos@0.1.2/dist/aos.css" integrity="sha384-GMRP93c6Hkz9JVKGAuRR3nTS7M07RwPgTFenXiosjq2VbVgvdDNcz1g6Mkj8AONa" crossorigin="anonymous">
+
+    <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://npm.webcache.cn/aplayer@1.10.1/dist/APlayer.min.css" integrity="sha384-tLMkTWh2pfXNWGFlUS0w1TFtRG5xZ9lPWFOooj+vDDLIL+xBGQU/voDBY5XE2lVh" crossorigin="anonymous">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+  <body>
+      <div id='loader'>
+    <div class="loading-left-bg loading-bg"></div>
+    <div class="loading-right-bg loading-bg"></div>
+    <div class="spinner-box">
+      <div class="loading-taichi rotate">
+          <svg width="150" height="150" viewBox="0 0 1024 1024" class="icon" version="1.1" xmlns="https://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+            <path d="M303.5 432A80 80 0 0 1 291.5 592A80 80 0 0 1 303.5 432z" fill="var(--red-1, #ff5252)" />
+            <path d="M512 65A447 447 0 0 1 512 959L512 929A417 417 0 0 0 512 95A417 417 0 0 0 512 929L512 959A447 447 0 0 1 512 65z 
+           M512 95A417 417 0 0 1 929 512A208.5 208.5 0 0 1 720.5 720.5L720.5 592A80 80 0 0 0 720.5 432A80 80 0 0 0 720.5 592L720.5 720.5A208.5 208.5 0 0 1 512 512A208.5 208.5 0 0 0 303.5 303.5A208.5 208.5 0 0 0 95 512A417 417 0 0 1 512 95z" fill="var(--red-1, #ff5252)" />
+          </svg>
+      </div>
+      <div class="loading-word">少女祈祷中...</div>
+    </div>
+  </div>
+  </div>
+  <script>
+    var time = null;
+    var loaderEl = document.getElementById('loader');
+    var startLoading = () => {
+      time = Date.now();
+      loaderEl.classList.remove("loading");
+    }
+    var hideLoader = () => {
+      document.body.style.overflow = 'auto';
+      loader.classList.add('loading');
+    };
+
+    var endLoading = () => {
+      if (!time) {
+        hideLoader();
+      } else {
+        if (Date.now() - time > 500) {
+          time = null;
+          hideLoader();
+        } else {
+          setTimeout(endLoading, 500 - (Date.now() - time));
+          time = null;
+        }
+      }
+    }
+    window.addEventListener('DOMContentLoaded', endLoading);
+    loaderEl.addEventListener('click', endLoading);
+  </script>
+<div id="copy-tooltip"></div>
+<div id="heatmap-tooltip"></div>
+
+
+    <div id="container">
+      <div id="wrap">
+        <div id="header-nav">
+  <nav id="main-nav" aria-label="Primary navigation">
+        <a class="main-nav-link-wrap" href="/blogs/">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">首页</span>
+        </span>
+        <a class="main-nav-link-wrap" href="/blogs/archives">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">归档</span>
+        </span>
+        <a class="main-nav-link-wrap" href="/blogs/about">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">关于</span>
+        </span>
+        <a class="main-nav-link-wrap" href="/blogs/friend">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">友链</span>
+        </span>
+    <a id="main-nav-toggle" class="nav-icon" aria-label="Toggle navigation" role="button"></a>
+  </nav>
+  <nav id="sub-nav" aria-label="Secondary navigation">
+      <a id="nav-rss-link" class="nav-icon" href="/blogs/atom.xml" title="RSS 订阅" aria-label="RSS 订阅" target="_blank"></a>
+  </nav>
+</div>
+<header id="header" aria-label="Site header">
+        <picture>
+        </picture>
+          <img  fetchpriority="high" src="/blogs/images/banner/new_ban.webp" alt="CS336 学习笔记">
+  <div id="header-outer">
+    <div id="header-title">
+          <span id="logo">
+            <h1 data-aos="slide-up">CS336 学习笔记</h1>
+          </span>
+        <h2 id="subtitle-wrap" data-aos="slide-down">
+        </h2>
+    </div>
+  </div>
+</header>
+
+        <div id="content" aria-label="Page content"  class="sidebar-right" >
+          <aside id="sidebar" aria-label="Sidebar">
+  <div class="sidebar-wrapper-container sticky">
+      <meting-js
+        theme="var(--color-link)"
+        id="8622951741"
+        server="netease"
+        type="playlist"
+        
+        fixed="false"
+        autoplay="false"
+        loop="all"
+        order="list"
+        preload="auto"
+        volume="0.7"
+        mutex="true"
+        list-folded="false"
+        
+      ></meting-js>
+  <div class="sidebar-wrapper">
+    <div class="sidebar-wrap" data-aos="fade-up">
+          <div class="sidebar-toc-sidebar"><h3 class="toc-title">文章目录</h3>
+<div class="sidebar-toc-wrapper toc-div-class" >
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#lecture-1-overview-tokenization"><span class="toc-number">1.</span> <span class="toc-text"> Lecture 1: Overview &amp; Tokenization</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B-language-modeling"><span class="toc-number">1.1.</span> <span class="toc-text"> 1. 语言模型 (Language Modeling)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%86%E8%AF%8D%E7%AD%96%E7%95%A5-tokenization-spectrum"><span class="toc-number">1.2.</span> <span class="toc-text"> 2. 分词策略 (Tokenization Spectrum)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-byte-pair-encoding-bpe"><span class="toc-number">1.3.</span> <span class="toc-text"> 3. Byte-Pair Encoding (BPE)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lecture-2-pytorch-resource-accounting"><span class="toc-number">2.</span> <span class="toc-text"> Lecture 2: PyTorch &amp; Resource Accounting</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-pytorch-%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5"><span class="toc-number">2.1.</span> <span class="toc-text"> 1. PyTorch 工程实践</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97-memory-accounting"><span class="toc-number">2.2.</span> <span class="toc-text"> 2. 显存估算 (Memory Accounting)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%AE%97%E5%8A%9B%E4%BC%B0%E7%AE%97-computeflops"><span class="toc-number">2.3.</span> <span class="toc-text"> 3. 算力估算 (Compute&#x2F;FLOPs)</span></a></li></ol></li></ol>
+</div>
+</div>
+          <div class="sidebar-common-sidebar hidden"><div class="sidebar-author">
+  <img data-src="/blogs/avatar/new_av.webp" data-sizes="auto" alt="Mothy Ti" class="lazyload">
+  <div class="sidebar-author-name">Mothy Ti</div>
+  <div class="sidebar-description">^^;</div>
+</div>
+<div class="sidebar-state">
+  <div class="sidebar-state-article">
+    <div>文章</div>
+    <div class="sidebar-state-number">11</div>
+  </div>
+  <div class="sidebar-state-category">
+    <div>分类</div>
+    <div class="sidebar-state-number">4</div>
+  </div>
+  <div class="sidebar-state-tag">
+    <div>标签</div>
+    <div class="sidebar-state-number">19</div>
+  </div>
+</div>
+<div class="sidebar-social" >
+    <div class="icon-github sidebar-social-icon">
+      <a href=https://github.com/Ti-FDGG itemprop="url" target="_blank" aria-label="github" rel="noopener nofollow noreferrer"></a>
+    </div>
+    <div class="icon-bilibili sidebar-social-icon">
+      <a href=https://space.bilibili.com/515199308 itemprop="url" target="_blank" aria-label="bilibili" rel="noopener nofollow noreferrer"></a>
+    </div>
+</div>
+<div class="sidebar-menu">
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/blogs/" aria-label="首页"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">首页</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/blogs/archives" aria-label="归档"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">归档</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/blogs/about" aria-label="关于"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">关于</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/blogs/friend" aria-label="友链"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">友链</div>
+      </div>
+</div>
+</div>
+          <div class="sidebar-btn-wrapper" style="position:static">
+            <div class="sidebar-toc-btn current"></div>
+            <div class="sidebar-common-btn"></div>
+          </div>
+    </div>
+  </div>
+  <div class="sidebar-widget">
+  </div>
+  </div>
+</aside>
+
+          <section id="main" aria-label="Main content"><article id="post-cs336-notes" class="h-entry article" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-inner" data-aos="fade-up">
+    <div class="article-meta">
+      <div class="article-date">
+  <span class="article-date-link icon-calendar" data-aos="zoom-in">
+    <time datetime="2026-01-17T04:55:15.000Z" itemprop="datePublished">2026-01-17</time>
+    <time style="display: none;" id="post-update-time">2026-01-21</time>
+  </span>
+</div>
+
+    </div>
+    
+    <div class="hr-line"></div>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+        <h2 id="lecture-1-overview-tokenization"><a class="markdownIt-Anchor" href="#lecture-1-overview-tokenization"></a> Lecture 1: Overview &amp; Tokenization</h2>
+<p><strong>核心主题</strong>：语言建模定义、分词粒度的权衡、BPE 算法详解。</p>
+<h3 id="1-语言模型-language-modeling"><a class="markdownIt-Anchor" href="#1-语言模型-language-modeling"></a> 1. 语言模型 (Language Modeling)</h3>
+<ul>
+<li><strong>定义</strong>：语言模型是对词序列 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mn>1</mn><mo>:</mo><mi>L</mi></mrow></msub></mrow><annotation encoding="application/x-tex">x_{1:L}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mrel mtight">:</span><span class="mord mathnormal mtight">L</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 的联合概率分布 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">p(x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span> 进行建模。</li>
+<li><strong>范式</strong>：通常通过<strong>Next Token Prediction</strong>（预测下一个词）来实现，即 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msubsup><mo>∏</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>L</mi></msubsup><mi>p</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>x</mi><mrow><mn>1</mn><mo>:</mo><mi>i</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">p(x) = \prod_{i=1}^{L} p(x_i | x_{1:i-1})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.2809409999999999em;vertical-align:-0.29971000000000003em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∏</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.981231em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">L</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.29971000000000003em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mrel mtight">:</span><span class="mord mathnormal mtight">i</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。</li>
+</ul>
+<h3 id="2-分词策略-tokenization-spectrum"><a class="markdownIt-Anchor" href="#2-分词策略-tokenization-spectrum"></a> 2. 分词策略 (Tokenization Spectrum)</h3>
+<p>如何在“词表大小 (Vocab Size)”与“序列长度 (Sequence Length)”之间寻找平衡？</p>
+<ul>
+<li><strong>Word-level</strong>：词表过大（&gt;100k），稀疏性高，存在 <strong>OOV (Out-of-Vocabulary)</strong> 问题。</li>
+<li><strong>Character-level</strong>：词表小（~100），但序列过长，模型难以捕捉长距离语义依赖。</li>
+<li><strong>Subword-level (主流)</strong>：平衡方案。常用词（the, is）保留，生僻词拆解（un-friend-ly）。</li>
+</ul>
+<h3 id="3-byte-pair-encoding-bpe"><a class="markdownIt-Anchor" href="#3-byte-pair-encoding-bpe"></a> 3. Byte-Pair Encoding (BPE)</h3>
+<ul>
+<li><strong>算法逻辑</strong>：一种迭代式的压缩算法。
+<ul>
+<li><strong>Training</strong>：从字符集开始，统计相邻 pair 频率 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\to</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> 合并最高频 pair <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\to</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> 加入词表 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>→</mo></mrow><annotation encoding="application/x-tex">\to</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">→</span></span></span></span> 循环直至达到目标 Vocab Size。</li>
+<li><strong>Inference</strong>：利用训练好的 Merge Rules，按优先级将新文本合并为 Token 序列。</li>
+</ul>
+</li>
+<li><strong>Byte-level BPE (关键改进)</strong>：
+<ul>
+<li><strong>问题</strong>：直接处理 Unicode 字符会导致基础词表过大（&gt;140k字符）。</li>
+<li><strong>解决方案</strong>：将文本先编码为 <strong>UTF-8 Bytes</strong>，在字节层面运行 BPE。</li>
+<li><strong>优势</strong>：基础词表固定为 256（0-255），<strong>彻底消除 <code>&lt;UNK&gt;</code></strong>，任何 Unicode 字符串都能被编码。</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="lecture-2-pytorch-resource-accounting"><a class="markdownIt-Anchor" href="#lecture-2-pytorch-resource-accounting"></a> Lecture 2: PyTorch &amp; Resource Accounting</h2>
+<p><strong>核心主题</strong>：Transformer 的工程实现技巧、显存与算力的理论估算。</p>
+<h3 id="1-pytorch-工程实践"><a class="markdownIt-Anchor" href="#1-pytorch-工程实践"></a> 1. PyTorch 工程实践</h3>
+<ul>
+<li><strong>Einsum (爱因斯坦求和)</strong>：
+<ul>
+<li>强烈推荐使用 <code>torch.einsum</code> 或 <code>einops</code>。</li>
+<li><strong>优势</strong>：替代晦涩的 <code>view/transpose</code>，显式表达维度变化，减少 Shape Mismatch 错误。</li>
+<li><em>Example</em>: <code>einsum('b s h d, b s h d -&gt; b s h', q, k)</code> 直观表示 Attention score 计算。</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-显存估算-memory-accounting"><a class="markdownIt-Anchor" href="#2-显存估算-memory-accounting"></a> 2. 显存估算 (Memory Accounting)</h3>
+<p>训练大模型时，显存不仅存权重，还有更多隐性开销。</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>Total Memory</mtext><mo>≈</mo><mtext>Params</mtext><mo>+</mo><mtext>Gradients</mtext><mo>+</mo><mtext>Optimizer States</mtext><mo>+</mo><mtext>Activations</mtext></mrow><annotation encoding="application/x-tex">\text{Total Memory} \approx \text{Params} + \text{Gradients} + \text{Optimizer States} + \text{Activations} 
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord text"><span class="mord">Total Memory</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord text"><span class="mord">Params</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="mord text"><span class="mord">Gradients</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord text"><span class="mord">Optimizer States</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord text"><span class="mord">Activations</span></span></span></span></span></span></p>
+<ul>
+<li><strong>Model Weights (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">Φ</span></span></span></span>)</strong>: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn></mrow><annotation encoding="application/x-tex">4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span></span></span></span> bytes/param (FP32).</li>
+<li><strong>Gradients</strong>: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn></mrow><annotation encoding="application/x-tex">4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span></span></span></span> bytes/param.</li>
+<li><strong>Optimizer States (AdamW)</strong>: <strong>大头</strong>。维护 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi></mrow><annotation encoding="application/x-tex">m</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">m</span></span></span></span> (一阶矩) 和 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span></span> (二阶矩)，需 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>8</mn></mrow><annotation encoding="application/x-tex">8</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">8</span></span></span></span> bytes/param。
+<ul>
+<li><em>注：仅模型和优化器就占用了 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>16</mn><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">16\Phi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">6</span><span class="mord">Φ</span></span></span></span> 的显存。</em></li>
+</ul>
+</li>
+<li><strong>Activations</strong>: 前向传播产生的中间结果（供反向传播用）。
+<ul>
+<li>与 Batch Size 和 Sequence Length 成正比。</li>
+<li>Transformer 中 Attention 矩阵和 FFN 中间层是显存消耗大户。</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-算力估算-computeflops"><a class="markdownIt-Anchor" href="#3-算力估算-computeflops"></a> 3. 算力估算 (Compute/FLOPs)</h3>
+<ul>
+<li><strong>矩阵乘法法则</strong>：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>M</mi><mo separator="true">,</mo><mi>N</mi><mo stretchy="false">)</mo><mo>×</mo><mo stretchy="false">(</mo><mi>N</mi><mo separator="true">,</mo><mi>K</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(M,N) \times (N,K)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="mclose">)</span></span></span></span> 矩阵相乘需要 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>2</mn><mi>M</mi><mi>N</mi><mi>K</mi></mrow><annotation encoding="application/x-tex">\approx 2MNK</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.48312em;vertical-align:0em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> FLOPs。</li>
+<li><strong>Transformer 经验公式</strong>：
+<ul>
+<li>对于参数量为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> 的模型，训练计算量约为：</li>
+</ul>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>C</mi><mo>≈</mo><mn>6</mn><mi>N</mi><mo>×</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">C \approx 6N \times D 
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord">6</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span></span></span></span></span></p>
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi></mrow><annotation encoding="application/x-tex">D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span></span></span></span> = 训练数据的总 Token 数。</li>
+<li><strong>分解</strong>：前向传播 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>2</mn><mi>N</mi></mrow><annotation encoding="application/x-tex">\approx 2N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.48312em;vertical-align:0em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span>，反向传播 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>4</mn><mi>N</mi></mrow><annotation encoding="application/x-tex">\approx 4N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.48312em;vertical-align:0em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">4</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span>。</li>
+</ul>
+</li>
+<li><strong>应用</strong>：用于估算在特定硬件（如 H100）上训练特定规模模型（如 GPT-2 XL）所需的时间。</li>
+</ul>
+
+    </div>
+    <footer class="article-footer">
+        <a class="article-category-link" href="/blogs/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="学习笔记" data-aos="zoom-in">学习笔记</a><a class="article-category-link" href="/blogs/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%8A%80%E6%9C%AF/" title="计算机技术" data-aos="zoom-in">计算机技术</a>
+
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/blogs/tags/LLM/" rel="tag" title="LLM">LLM</a></li><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/blogs/tags/Transformer/" rel="tag" title="Transformer">Transformer</a></li></ul>
+
+    </footer>
+  </div>
+    <nav id="article-nav" aria-label="Article navigation" data-aos="fade-up">
+    <div class="article-nav-link-wrap right">
+          <img data-src="/blogs/covers/燐空.jpg" data-sizes="auto" alt="随时的想法/日记" class="lazyload">
+      <a href="/blogs/2025/09/11/thoughts-at-any-time-or-diary/" aria-label="后一篇: 随时的想法/日记"  title="后一篇: 随时的想法/日记"></a>
+      <div class="article-nav-caption">后一篇</div>
+      <h3 class="article-nav-title">
+          随时的想法/日记
+      </h3>
+    </div>
+  </nav>
+
+</article>
+
+
+</section>
+        </div>
+        <footer id="footer" aria-label="Site footer">
+  <div style="width: 100%; overflow: hidden">
+    <div class="footer-line"></div>
+  </div>
+  <div id="footer-info">
+    <div>
+      <span class="icon-copyright"></span>
+        2020-2026
+        <span class="footer-info-sep rotate"></span>
+      Mothy Ti
+    </div>
+      <div>
+        基于&nbsp;<a href="https://hexo.io/" rel="noopener nofollow noreferrer" target="_blank">Hexo</a>&nbsp;
+        Theme.<a href="https://github.com/D-Sketon/hexo-theme-reimu" rel="noopener nofollow noreferrer" target="_blank">Reimu</a>
+      </div>
+      <div>
+        <span class="icon-brush"></span>
+        27k
+        &nbsp;|&nbsp;
+        <span class="icon-coffee"></span>
+        01:44
+      </div>
+      <div>
+        <span class="icon-eye"></span>
+        <span id="busuanzi_container_site_pv">总访问量&nbsp;<span id="busuanzi_value_site_pv"></span></span>
+        &nbsp;|&nbsp;
+        <span class="icon-user"></span>
+        <span id="busuanzi_container_site_uv">总访客量&nbsp;<span id="busuanzi_value_site_uv"></span></span>
+      </div>
+  </div>
+</footer>
+
+          <div class="sidebar-top">
+            <div class="sidebar-top-taichi rotate"></div>
+            <div class="arrow-up"></div>
+          </div>
+        <div id="mask" class="hide"></div>
+      </div>
+      <nav id="mobile-nav" aria-label="Mobile navigation">
+  <div class="sidebar-wrap">
+        <div class="sidebar-toc-sidebar"><h3 class="toc-title">文章目录</h3>
+<div class="sidebar-toc-wrapper toc-div-class" >
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#lecture-1-overview-tokenization"><span class="toc-number">1.</span> <span class="toc-text"> Lecture 1: Overview &amp; Tokenization</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B-language-modeling"><span class="toc-number">1.1.</span> <span class="toc-text"> 1. 语言模型 (Language Modeling)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%86%E8%AF%8D%E7%AD%96%E7%95%A5-tokenization-spectrum"><span class="toc-number">1.2.</span> <span class="toc-text"> 2. 分词策略 (Tokenization Spectrum)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-byte-pair-encoding-bpe"><span class="toc-number">1.3.</span> <span class="toc-text"> 3. Byte-Pair Encoding (BPE)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lecture-2-pytorch-resource-accounting"><span class="toc-number">2.</span> <span class="toc-text"> Lecture 2: PyTorch &amp; Resource Accounting</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-pytorch-%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5"><span class="toc-number">2.1.</span> <span class="toc-text"> 1. PyTorch 工程实践</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97-memory-accounting"><span class="toc-number">2.2.</span> <span class="toc-text"> 2. 显存估算 (Memory Accounting)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%AE%97%E5%8A%9B%E4%BC%B0%E7%AE%97-computeflops"><span class="toc-number">2.3.</span> <span class="toc-text"> 3. 算力估算 (Compute&#x2F;FLOPs)</span></a></li></ol></li></ol>
+</div>
+</div>
+        <div class="sidebar-common-sidebar hidden"><div class="sidebar-author">
+  <img data-src="/blogs/avatar/new_av.webp" data-sizes="auto" alt="Mothy Ti" class="lazyload">
+  <div class="sidebar-author-name">Mothy Ti</div>
+  <div class="sidebar-description">^^;</div>
+</div>
+<div class="sidebar-state">
+  <div class="sidebar-state-article">
+    <div>文章</div>
+    <div class="sidebar-state-number">11</div>
+  </div>
+  <div class="sidebar-state-category">
+    <div>分类</div>
+    <div class="sidebar-state-number">4</div>
+  </div>
+  <div class="sidebar-state-tag">
+    <div>标签</div>
+    <div class="sidebar-state-number">19</div>
+  </div>
+</div>
+<div class="sidebar-social" >
+    <div class="icon-github sidebar-social-icon">
+      <a href=https://github.com/Ti-FDGG itemprop="url" target="_blank" aria-label="github" rel="noopener nofollow noreferrer"></a>
+    </div>
+    <div class="icon-bilibili sidebar-social-icon">
+      <a href=https://space.bilibili.com/515199308 itemprop="url" target="_blank" aria-label="bilibili" rel="noopener nofollow noreferrer"></a>
+    </div>
+</div>
+<div class="sidebar-menu">
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/blogs/" aria-label="首页"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">首页</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/blogs/archives" aria-label="归档"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">归档</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/blogs/about" aria-label="关于"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">关于</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/blogs/friend" aria-label="友链"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">友链</div>
+      </div>
+</div>
+</div>
+  </div>
+      <div class="sidebar-btn-wrapper">
+        <div class="sidebar-toc-btn current"></div>
+        <div class="sidebar-common-btn"></div>
+      </div>
+</nav>
+
+    </div>
+    
+<script src="https://npm.webcache.cn/lazysizes@5.3.2/lazysizes.min.js" integrity="sha384-3gT&#x2F;vsepWkfz&#x2F;ff7PpWNUeMzeWoH3cDhm&#x2F;A8jM7ouoAK0&#x2F;fP&#x2F;9bcHHR5kHq2nf+e" crossorigin="anonymous"></script>
+
+
+<script src="https://npm.webcache.cn/clipboard@2.0.11/dist/clipboard.min.js" integrity="sha384-J08i8An&#x2F;QeARD9ExYpvphB8BsyOj3Gh2TSh1aLINKO3L0cMSH2dN3E22zFoXEi0Q" crossorigin="anonymous"></script>
+
+
+
+
+<script src="/blogs/js/script.js"></script>
+
+
+  
+<script src="/blogs/js/aos.js"></script>
+
+  <script>
+    var aosInit = () => {
+      AOS.init({
+        duration: 1000,
+        easing: "ease",
+        once: true,
+        offset: 50,
+      });
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', aosInit);
+    } else {
+      aosInit();
+    }
+  </script>
+
+
+<script src="/blogs/js/pjax_script.js" data-pjax></script>
+
+
+
+
+  <script>
+    var setupFirework = () => {
+      if (!false || !window.matchMedia('(max-width: 768px)').matches) {
+        window.firework && window.firework(JSON.parse('{"excludeElements":["a","button"],"particles":[{"shape":"circle","move":["emit"],"easing":"easeOutExpo","colors":["var(--red-1)","var(--red-2)","var(--red-3)","var(--red-4)"],"number":20,"duration":[1200,1800],"shapeOptions":{"radius":[16,32],"alpha":[0.3,0.5]}},{"shape":"circle","move":["diffuse"],"easing":"easeOutExpo","colors":["var(--red-0)"],"number":1,"duration":[1200,1800],"shapeOptions":{"radius":20,"alpha":[0.2,0.5],"lineWidth":6}}]}'));
+      }
+    }
+  </script>
+  
+<script src="https://npm.webcache.cn/mouse-firework@0.2.0/dist/index.umd.js" integrity="sha384-qi9WggRt19tv8Vc7pCHW3ulMNLwrn515zaLEWZjl1px07vz8+pUoWX8n1rgq282T" crossorigin="anonymous" onload="setupFirework()" defer></script>
+
+
+  
+<script src="https://npm.webcache.cn/theme-shokax-pjax@0.0.3/dist/index.umd.js" integrity="sha384-xneY1WY8hOfUzswrE4CrYq35N4BdVcxqxwHPr9zawE&#x2F;jMSCxD+jAPU55x&#x2F;jj3wlf" crossorigin="anonymous"></script>
+
+  
+<script src="/blogs/js/pjax.js"></script>
+
+
+
+
+
+<div id="lazy-script">
+  <div>
+      
+      
+      <script data-pjax>
+        window.REIMU_POST = {
+          author: "Mothy Ti",
+          title: "CS336 学习笔记",
+          url: "https://ti-fdgg.github.io/blogs/2026/01/17/cs336-notes/",
+          excerpt: "",
+          description: "",
+          stripContent: " Lecture 1: Overview &amp;amp; Tokenization 核心主题：语言建模定义、分词粒度的权衡、BPE 算法详解。  1. 语言模型 (Language Modeling)  定义：语言模型是对词序列 x1:Lx_{1:L}x1:L​ 的联合概率分布 p(x)p(x)p(x) 进行建模。 范式：通常通过Next Token Prediction（预测下一个词）来实现，即 p(x)=∏i=1Lp(xi∣x1:i−1)p(x) = \prod_{i=1}^{L} p(x_i ",
+          date: "Sat Jan 17 2026 12:55:15 GMT+0800",
+          updated: "Wed Jan 21 2026 12:58:35 GMT+0800",
+          cover: "/blogs/images/banner/new_ban.webp",
+        };
+      </script>
+        
+<script src="/blogs/js/insert_highlight.js" data-pjax></script>
+
+      
+<script src="/blogs/js/tabs.js" data-pjax defer></script>
+
+      <script type="module" data-pjax>
+        (async () => {
+          const PhotoSwipeLightbox = (await safeImport("https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe-lightbox.esm.min.js", "sha384-DiL6M/gG+wmTxmCRZyD1zee6lIhawn5TGvED0FOh7fXcN9B0aZ9dexSF/N6lrZi/")).default;
+          const initPswp = (gallery, children) => {
+            if (_$$(`${gallery} ${children}`).length > 0) {
+              new PhotoSwipeLightbox({
+                gallery,
+                children,
+                pswpModule: () => safeImport("https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe.esm.min.js", "sha384-WkkO3GCmgkC3VQWpaV8DqhKJqpzpF9JoByxDmnV8+oTJ7m3DfYEWX1fu1scuS4+s")
+              }).init();
+            }
+          }
+          const pswp = () => {
+            initPswp('.article-entry', 'a.article-gallery-item');
+            initPswp('.article-gallery', 'a.article-gallery-item');
+          }
+          pswp();
+        })();
+      </script>
+        
+
+
+  </div>
+</div>
+
+
+  <script>
+    console.log(String.raw`%c 
+ ______     ______     __     __    __     __  __    
+/\  == \   /\  ___\   /\ \   /\ "-./  \   /\ \/\ \   
+\ \  __<   \ \  __\   \ \ \  \ \ \-./\ \  \ \ \_\ \  
+ \ \_\ \_\  \ \_____\  \ \_\  \ \_\ \ \_\  \ \_____\ 
+  \/_/ /_/   \/_____/   \/_/   \/_/  \/_/   \/_____/ 
+                                                  
+`,'color: #ff5252;')
+    console.log('%c Theme.Reimu v' + '1.12.0' + ' %c https://github.com/D-Sketon/hexo-theme-reimu ', 'color: white; background: #ff5252; padding:5px 0;', 'padding:4px;border:1px solid #ff5252;')
+  </script>
+  
+
+
+  
+<script src="https://npm.webcache.cn/busuanzi@2.3.0/bsz.pure.mini.js" integrity="sha384-0M75wtSkhjIInv4coYlaJU83+OypaRCIq2SukQVQX04eGTCBXJDuWAbJet56id+S" crossorigin="anonymous" async></script>
+
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (let registration of registrations) {
+        registration.unregister();
+      }
+    });
+  }
+</script>
+
+
+    <script>
+      var setupAPlayer = () => {
+        if (! || !window.matchMedia('(max-width: 768px)').matches) {
+          if (window.matchMedia('(max-width: 959px)').matches) {
+            const meting = _$('meting-js');
+            if (meting) {
+              meting.setAttribute('fixed', 'true');
+              const aside = meting.parentNode?.parentNode;
+              if (aside?.tagName === 'ASIDE') {
+                meting.parentNode.removeChild(meting);
+                document.body.appendChild(meting);
+              }
+            }
+          }
+        }
+      };
+    </script>
+  
+<script src="https://npm.webcache.cn/aplayer@1.10.1/dist/APlayer.min.js" integrity="sha384-gdGYZwHnfJM54evoZhpO0s6ZF5BQiybkiyW7VXr+h5UfruuRL&#x2F;aORyw+5+HZoU6e" crossorigin="anonymous" defer onload="setupAPlayer()"></script>
+
+    
+<script src="https://npm.webcache.cn/meting@2.0.1/dist/Meting.min.js" integrity="sha384-ASVlpKF80A22OXTK3tfEjZm1EL6uFMKIC4p8+0maanw1S&#x2F;IyB+Y4JG+ZDU7GpKE8" crossorigin="anonymous" defer></script>
+
+
+
+  </body>
+  </html>
