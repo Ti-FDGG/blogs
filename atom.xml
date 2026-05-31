@@ -247,9 +247,9 @@
     
     <category term="Linux" scheme="https://ti-fdgg.github.io/blogs/tags/Linux/"/>
     
-    <category term="Docker" scheme="https://ti-fdgg.github.io/blogs/tags/Docker/"/>
-    
     <category term="Shell" scheme="https://ti-fdgg.github.io/blogs/tags/Shell/"/>
+    
+    <category term="Docker" scheme="https://ti-fdgg.github.io/blogs/tags/Docker/"/>
     
     <category term="Vim" scheme="https://ti-fdgg.github.io/blogs/tags/Vim/"/>
     
