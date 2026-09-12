@@ -6,7 +6,7 @@
   <link href="https://ti-fdgg.github.io/blogs/atom.xml" rel="self"/>
   
   <link href="https://ti-fdgg.github.io/blogs/"/>
-  <updated>2026-01-21T04:58:35.215Z</updated>
+  <updated>2026-09-12T14:08:42.509Z</updated>
   <id>https://ti-fdgg.github.io/blogs/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>猫娘</title>
+    <link href="https://ti-fdgg.github.io/blogs/2026/09/12/maoniang/"/>
+    <id>https://ti-fdgg.github.io/blogs/2026/09/12/maoniang/</id>
+    <published>2026-09-12T14:06:42.000Z</published>
+    <updated>2026-09-12T14:08:42.509Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;By GPT-6 Astra&lt;/p&gt;
+&lt;p&gt;i love catgirls.&lt;br /&gt;
+&lt;a</summary>
+        
+      
+    
+    
+    
+    
+    <category term="XP" scheme="https://ti-fdgg.github.io/blogs/tags/XP/"/>
+    
+  </entry>
   
   <entry>
     <title>CS336 学习笔记</title>
@@ -247,9 +272,9 @@
     
     <category term="Linux" scheme="https://ti-fdgg.github.io/blogs/tags/Linux/"/>
     
-    <category term="Shell" scheme="https://ti-fdgg.github.io/blogs/tags/Shell/"/>
-    
     <category term="Docker" scheme="https://ti-fdgg.github.io/blogs/tags/Docker/"/>
+    
+    <category term="Shell" scheme="https://ti-fdgg.github.io/blogs/tags/Shell/"/>
     
     <category term="Vim" scheme="https://ti-fdgg.github.io/blogs/tags/Vim/"/>
     
